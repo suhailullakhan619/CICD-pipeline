@@ -10,19 +10,31 @@ jobs:
     name: Build the project
     runs-on: ubuntu-latest
 
-    steps:  
-    - uses: actions/checkout@v3
+    steps:
+      - uses: actions/checkout@v3
 
-    - name: Use Node.js
-      uses: actions/setup-node@v3
-      with:
-        node-version: '20'
+      - name: Use Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: '20'
 
-    - name: Install Dependencies
-      run: npm install
+      - name: Install Dependencies
+        run: npm install
 
-    - name: Generate Prisma Client
-      run: npx prisma generate
+      # Set Prisma / NextAuth environment variables
+      - name: Set Environment Variables
+        run: |
+          echo "DATABASE_URL=${{ secrets.DATABASE_URL }}" >> $GITHUB_ENV
+          echo "NEXTAUTH_SECRET=${{ secrets.NEXTAUTH_SECRET }}" >> $GITHUB_ENV
 
-    - name: Run Build
-      run: npm run build
+      # Generate Prisma client for each app
+      - name: Generate Prisma Client for user-app
+        working-directory: ./apps/user-app
+        run: npx prisma generate
+
+      - name: Generate Prisma Client for merchant-app
+        working-directory: ./apps/merchant-app
+        run: npx prisma generate
+
+      - name: Run Build
+        run: npm run build
